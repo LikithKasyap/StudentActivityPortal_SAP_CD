@@ -6,7 +6,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: '//url'
+                git branch: 'main', url: 'https://github.com/LikithKasyap/StudentActivityPortal_SAP_CD.git'
             }
         }
 
