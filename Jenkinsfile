@@ -1,31 +1,53 @@
 pipeline {
     agent any
 
-    
+    environment {
+        DOCKER_COMPOSE_FILE = 'docker-compose.yml'
+    }
 
     stages {
-        stage('Checkout') {
+        stage('Clean Workspace') {
             steps {
-                git branch: 'main', url: 'https://github.com/LikithKasyap/StudentActivityPortal_SAP_CD.git'
+                deleteDir()
             }
         }
 
-        stage('Build Maven Package') {
+        stage('Checkout SCM') {
             steps {
-                bat 'mvn clean package -DskipTests'
+                git branch: 'main', 
+                    url: 'https://github.com/LikithKasyap/StudentActivityPortal_SAP_CD.git'
             }
         }
 
-        stage('Test') {
+        stage('Verify Docker') {
             steps {
-                echo "Test Completed"
+                bat 'docker --version'
+                bat 'docker-compose --version'
             }
         }
 
-        stage('Start Services with Docker Compose') {
+        stage('Build Backend Image') {
+            steps {
+                dir('backend') {
+                    bat 'docker build -t student-backend:latest .'
+                }
+            }
+        }
+
+        stage('Build Frontend Image') {
+            steps {
+                dir('frontend') {
+                    bat 'docker build -t student-frontend:latest .'
+                }
+            }
+        }
+
+        stage('Start Services') {
             steps {
                 script {
-                    bat 'docker-compose up -d --build'
+                    bat "docker-compose -f ${env.DOCKER_COMPOSE_FILE} down"
+                    bat "docker-compose -f ${env.DOCKER_COMPOSE_FILE} up -d --build"
+                    bat "docker-compose -f ${env.DOCKER_COMPOSE_FILE} logs --tail=50"
                 }
             }
         }
@@ -33,13 +55,13 @@ pipeline {
 
     post {
         success {
-            echo 'Pipeline executed successfully!'
+            echo '✅ Pipeline executed successfully!'
         }
         failure {
-            echo 'Pipeline failed. Please check logs.'
+            echo '❌ Pipeline failed. Check the logs above.'
         }
-        cleanup {
-            cleanWs() // only cleans Jenkins workspace, not containers
+        always {
+            cleanWs()
         }
     }
 }
