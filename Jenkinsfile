@@ -26,13 +26,11 @@ pipeline {
             }
         }
 
-        stage('Build Backend Image') {
-            steps {
-                dir('backend') {
-                    bat 'docker build -t student-backend:latest .'
-                }
-            }
-        }
+       stage('Build Backend Image') {
+    dir('.') {  // change from 'backend' if Dockerfile is at root
+        bat 'docker build -t student-backend:latest -f backend/Dockerfile .'
+    }
+}
 
         stage('Build Frontend Image') {
             steps {
