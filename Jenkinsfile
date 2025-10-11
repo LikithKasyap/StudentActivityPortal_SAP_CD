@@ -10,7 +10,7 @@ pipeline {
 
         stage('Build Maven Package') {
             steps {
-                bat 'mvn clean package -DskipTests'
+                bat 'sh clean package -DskipTests'
             }
         }
 
